@@ -26,7 +26,6 @@ locals {
 }
 
 resource "aws_db_instance" "default" {
-  count             = var.enabled ? 1 : 0
   identifier        = module.label.id
   name              = var.database_name
   username          = var.database_user
@@ -69,7 +68,7 @@ resource "aws_db_instance" "default" {
 }
 
 resource "aws_db_parameter_group" "default" {
-  count  = length(var.parameter_group_name) == 0 && var.enabled ? 1 : 0
+  count  = length(var.parameter_group_name) == 0 ? 1 : 0
   name   = module.label.id
   family = var.db_parameter_group
   tags   = module.label.tags
@@ -85,7 +84,7 @@ resource "aws_db_parameter_group" "default" {
 }
 
 resource "aws_db_option_group" "default" {
-  count                = length(var.option_group_name) == 0 && var.enabled ? 1 : 0
+  count                = length(var.option_group_name) == 0 ? 1 : 0
   name                 = module.label.id
   engine_name          = var.engine
   major_engine_version = local.major_engine_version
@@ -116,14 +115,12 @@ resource "aws_db_option_group" "default" {
 }
 
 resource "aws_db_subnet_group" "default" {
-  count      = var.enabled ? 1 : 0
   name       = module.label.id
   subnet_ids = var.subnet_ids
   tags       = module.label.tags
 }
 
 resource "aws_security_group" "default" {
-  count       = var.enabled ? 1 : 0
   name        = module.label.id
   description = "Allow inbound traffic from the security groups"
   vpc_id      = var.vpc_id
@@ -147,7 +144,7 @@ resource "aws_security_group" "default" {
 
 module "dns_host_name" {
   source  = "git::https://github.com/cloudposse/terraform-aws-route53-cluster-hostname.git?ref=tags/0.3.0"
-  enabled = length(var.dns_zone_id) > 0 && var.enabled ? true : false
+  enabled = length(var.dns_zone_id) > 0 ? true : false
   name    = var.host_name
   zone_id = var.dns_zone_id
   records = coalescelist(aws_db_instance.default.*.address, [""])
