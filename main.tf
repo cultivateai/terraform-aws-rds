@@ -26,7 +26,7 @@ locals {
 }
 
 resource "aws_db_instance" "default" {
-  identifier        = module.label.id
+  identifier        = var.identifier != "" ? var.identifier : module.label.id
   name              = var.database_name
   username          = var.database_user
   password          = var.database_password
